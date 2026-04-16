@@ -53,7 +53,7 @@ def fetch_all_themes(token: str) -> list[dict]:
         }, timeout=10)
         resp.raise_for_status()
         data = resp.json()
-        log.info(f"  응답 키: {list(data.keys())} / thema_grp 수: {len(data.get('thema_grp', []))}")
+        log.info(f"  응답: code={data.get('return_code')} msg={data.get('return_msg')} / thema_grp 수: {len(data.get('thema_grp', []))}")
         result.extend(data.get("thema_grp", []))
         c_yn  = resp.headers.get("cont-yn", "N")
         n_key = resp.headers.get("next-key", "")
