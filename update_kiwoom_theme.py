@@ -102,6 +102,10 @@ def upsert_all(themes: list[dict], theme_stocks: dict[str, list]):
         "main_stk":       t.get("main_stk", ""),
     } for t in themes]
 
+    if not theme_rows:
+        log.warning("⚠️ 테마 데이터 없음 (장외시간?) → 업서트 스킵")
+        return
+
     sb.table("kiwoom_theme").upsert(theme_rows).execute()
     log.info(f"kiwoom_theme upsert: {len(theme_rows)}개")
 
