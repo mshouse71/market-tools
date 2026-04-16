@@ -1,0 +1,29 @@
+name: 키움 테마 업데이트
+
+on:
+  schedule:
+    - cron: '50 23 * * 1-5'   # 한국 08:50 (UTC 23:50 전날) - 장 시작 전
+    - cron: '10 07 * * 1-5'   # 한국 16:10 (UTC 07:10)      - 장 마감 후
+  workflow_dispatch:            # 수동 실행
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install requests python-dotenv supabase
+
+      - name: 키움 테마 업데이트
+        env:
+          KIWOOM_APP_KEY:  ${{ secrets.KIWOOM_APP_KEY }}
+          KIWOOM_SECRET_KEY: ${{ secrets.KIWOOM_SECRET_KEY }}
+          SUPABASE_URL:    ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:    ${{ secrets.SUPABASE_KEY }}
+        run: python update_kiwoom_theme.py
