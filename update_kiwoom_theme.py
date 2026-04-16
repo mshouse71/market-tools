@@ -53,6 +53,7 @@ def fetch_all_themes(token: str) -> list[dict]:
         }, timeout=10)
         resp.raise_for_status()
         data = resp.json()
+        log.info(f"  응답 키: {list(data.keys())} / thema_grp 수: {len(data.get('thema_grp', []))}")
         result.extend(data.get("thema_grp", []))
         c_yn  = resp.headers.get("cont-yn", "N")
         n_key = resp.headers.get("next-key", "")
@@ -99,10 +100,9 @@ def upsert_all(themes: list[dict], theme_stocks: dict[str, list]):
         "rising_stk_num": int(t.get("rising_stk_num") or 0),
         "fall_stk_num":   int(t.get("fall_stk_num") or 0),
         "main_stk":       t.get("main_stk", ""),
-        "updated_at":     "now()",
     } for t in themes]
 
-    sb.table("kiwoom_theme").upsert(theme_rows, on_conflict="thema_grp_cd").execute()
+    sb.table("kiwoom_theme").upsert(theme_rows).execute()
     log.info(f"kiwoom_theme upsert: {len(theme_rows)}개")
 
     # 2) kiwoom_theme_stock 엎어치기
@@ -115,15 +115,12 @@ def upsert_all(themes: list[dict], theme_stocks: dict[str, list]):
                 "stock_name":   s.get("stk_nm", ""),
                 "flu_rt":       safe_float(s.get("flu_rt")),
                 "dt_prft_rt":   safe_float(s.get("dt_prft_rt_n")),
-                "updated_at":   "now()",
             })
 
     # 500개씩 배치
     for i in range(0, len(stock_rows), 500):
         batch = stock_rows[i:i+500]
-        sb.table("kiwoom_theme_stock").upsert(
-            batch, on_conflict="thema_grp_cd,stock_code"
-        ).execute()
+        sb.table("kiwoom_theme_stock").upsert(batch).execute()
         log.info(f"kiwoom_theme_stock upsert: {i+len(batch)}/{len(stock_rows)}")
 
     log.info(f"✅ 완료! 테마:{len(theme_rows)}개 / 종목매핑:{len(stock_rows)}건")
