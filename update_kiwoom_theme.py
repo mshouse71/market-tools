@@ -33,7 +33,11 @@ def get_token() -> str:
         "secretkey":  SECRET_KEY,
     }, timeout=10)
     resp.raise_for_status()
-    return resp.json().get("token", "")
+    data = resp.json()
+    log.info(f"토큰 응답 키: {list(data.keys())}")
+    token = data.get("token") or data.get("access_token") or data.get("Token") or ""
+    log.info(f"토큰 길이: {len(token)}")
+    return token
 
 
 def fetch_all_themes(token: str) -> list[dict]:
